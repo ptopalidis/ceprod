@@ -8,7 +8,7 @@ const fileUpload = require("express-fileupload");
 
 
 //Middlewares
-const dbConnect = require('./Middlewares/dbConnect');
+const dbConnect = require('./middlewares/dbConnect');
 
 //Routers
 const userRouter = require("./routers/user.router")
