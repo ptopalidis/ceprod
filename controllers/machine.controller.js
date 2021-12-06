@@ -1,4 +1,5 @@
 const machineModel = require("../models/machine.model")
+const userModel = require("../models/user.model")
 
 //Services
 const UserFolderService = require("../services/userFolderService")
@@ -7,6 +8,18 @@ const UserFolderService = require("../services/userFolderService")
 const path = require("path")
 
 var CryptoJS = require("crypto-js");
+
+
+exports.postMachine = async(req,res)=>{
+    try{
+        await machineModel.create(req.body.machine);
+        res.status(200).send({success:"The machine was created."})
+    }catch(error){
+        console.log(error);
+        res.status(400).send({error:"An error occured."});
+        return 
+    }
+}
 
 
 exports.getMachineByID =async (req,res)=>{
@@ -56,7 +69,7 @@ exports.uploadMachineFile = async(req,res)=>{
             console.log(newFile)
             if(newFile){
                 newFile.mv(path.join(machineFolder ,newFile.name));
-                machine[req.body.fileType][req.body.fileMode].links.push(process.env.FILE_PATH +  "/"  + req.body.userID + "/machines" + "/" + newFile.name)
+                machine[req.body.fileType][req.body.fileMode].links.push(process.env.FILE_PATH +  "/"  + req.body.userID + "/machines/" + machine._id + "/" + newFile.name)
                 machine.save();
                 res.status(200).send({success:"There file was uploaded successfully"});
             }else{
@@ -83,6 +96,7 @@ exports.updateMachineFiles = async(req,res)=>{
 
 
     try{
+        console.log(req.body.machine)
         await machineModel.updateOne({_id:req.params.machineID},req.body.machine);
         res.status(200).send({success:"The files were successfully updated."})
     }
@@ -96,11 +110,12 @@ exports.updateMachineFiles = async(req,res)=>{
 exports.generateFileCode = async(req,res)=>{
     try{
         var machine = await machineModel.findOne({_id:req.body.machineID});
-        var fileCode = machine.variableFiles[req.body.fileIndicator].fileCode;
+        var user = await userModel.findOne({_id:machine.userID})
+        var fileCode = machine.variableFiles[req.body.fid][req.body.fileIndicator].fileCode;
         console.log(machine._id)
-        if(!fileCode){
-            fileCode = CryptoJS.AES.encrypt(machine._id.toString(),"ptopalidisce").toString()
-            machine.variableFiles[req.body.fileIndicator].fileCode = fileCode
+        if(!fileCode || fileCode==""){
+            fileCode = CryptoJS.AES.encrypt(machine._id.toString()+"|"+machine.name+"|"+machine.type+"|"+user.bussinesName +"|" + machine.variableFiles[req.body.fid].serialNumber ,"ptopalidisce").toString()
+            machine.variableFiles[req.body.fid][req.body.fileIndicator].fileCode = fileCode
             await machine.save()
            
         }
@@ -123,11 +138,11 @@ exports.validateFile = async(req,res)=>{
         var originalText = bytes.toString(CryptoJS.enc.Utf8);
 
         console.log(originalText)
-      
-        var machine = await machineModel.findOne({_id:originalText});
+        var decodedData = originalText.split("|")
+        var machine = await machineModel.findOne({_id:decodedData[0]});
       
         if(machine){
-            res.status(200).send({success:"Το έγγραφο είναι έγκυρο"})
+            res.status(200).send({success:"Το έγγραφο είναι έγκυρο",data:{decodedData:decodedData}})
             return;
         }
         res.status(400).send({error:"Το έγγραφο δεν είναι έγκυρο."})

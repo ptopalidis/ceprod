@@ -56,128 +56,125 @@ const machineSchema = new mongoose.Schema({
         }
       
     },
-    variableFiles:{
-        qualityControlAndTests:{
-            data:{
-                serialNumber:{
-                    type:String
-                },
-                issueDate:{
-                    type:Date
-                },
-                productionDate:{
-                    type:Date
-                },
-                productionManager:{
-                    type:String
-                }
-            },
-            fileCode:{
-                type:String
-            }
-        },
-        production:{
-            data:{
-                orderNumber:{
-                    type:String
-                },
-                quantity:{
-                    type:Number
-                },
-                jobs:{
-                    cuts:{
-                        name:{
-                            type:String
-                        },
-                        date:{
-                            type:Date
-                        }
+    variableFiles:[
+        {
+            qualityControlAndTests:{
+                data:{
+
+                    issueDate:{
+                        type:Date
                     },
-                    soldering:{
-                        name:{
-                            type:String
-                        },
-                        date:{
-                            type:Date
-                        }
+                    productionDate:{
+                        type:Date
                     },
-                    modding:{
-                        name:{
-                            type:String
-                        },
-                        date:{
-                            type:Date
-                        }
-                    }
-                },
-                serialNumber:{
-                    type:String
-                },
-                startDate:{
-                    type:Date
-                },
-               
-                productionManager:{
-                    type:String
-                }
-            },
-            fileCode:{
-                type:String
-            }
-        },
-        partsList:{
-            data:{
-                serialNumber:{
-                    type:String
-                },
-                issueDate:{
-                    type:Date
-                },
-                productionDate:{
-                    type:Date
-                },
-                productionManager:{
-                    type:String
-                },
-                parts:[{
-                    name:{
-                        type:String
-                    },
-                    description:{
-                        type:String
-                    },
-                    serialNumber:{
-                        type:String
-                    },
-                    vendor:{
+                    productionManager:{
                         type:String
                     }
-                }]
-            },
-            fileCode:{
-                type:String
-            }
-        },
-        declarationOfCompliance:{
-            data:{
-                serialNumber:{
-                    type:String
                 },
-                issueDate:{
-                    type:Date
-                },
-                productionDate:{
-                    type:Date
-                },
-                productionManager:{
+                fileCode:{
                     type:String
                 }
             },
-            fileCode:{
+            production:{
+                data:{
+                    orderNumber:{
+                        type:String
+                    },
+                    quantity:{
+                        type:Number
+                    },
+                    jobs:{
+                        cuts:{
+                            name:{
+                                type:String
+                            },
+                            date:{
+                                type:Date
+                            }
+                        },
+                        soldering:{
+                            name:{
+                                type:String
+                            },
+                            date:{
+                                type:Date
+                            }
+                        },
+                        modding:{
+                            name:{
+                                type:String
+                            },
+                            date:{
+                                type:Date
+                            }
+                        }
+                    },
+
+                    startDate:{
+                        type:Date
+                    },
+                
+                    productionManager:{
+                        type:String
+                    }
+                },
+                fileCode:{
+                    type:String
+                }
+            },
+            partsList:{
+                data:{
+
+                    issueDate:{
+                        type:Date
+                    },
+                    productionDate:{
+                        type:Date
+                    },
+                    productionManager:{
+                        type:String
+                    },
+                    parts:[{
+                        name:{
+                            type:String
+                        },
+                        description:{
+                            type:String
+                        },
+                        serialNumber:{
+                            type:String
+                        },
+                        vendor:{
+                            type:String
+                        }
+                    }]
+                },
+                fileCode:{
+                    type:String
+                }
+            },
+            declarationOfCompliance:{
+                data:{
+
+                    issueDate:{
+                        type:Date
+                    },
+                    productionDate:{
+                        type:Date
+                    },
+                    productionManager:{
+                        type:String
+                    }
+                },
+                fileCode:{
+                    type:String
+                }
+            },
+            serialNumber:{
                 type:String
             }
         }
-    }
+    ]
   
 });
 

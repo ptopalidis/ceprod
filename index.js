@@ -1,5 +1,6 @@
 //Libraries
 const path = require("path");
+const fs =require("fs")
 const express = require("express");
 const cors = require('cors');
 const dotenv = require("dotenv");
@@ -45,6 +46,14 @@ app.use("/api/machines",machineRouter)
 app.use("/api/messages",messageRouter)
 app.use("/api/machineCategories",machineCategoryRouter)
 
+
+app.get("/files/:userID/machines/:machineID/:fileName",async(req,res)=>{
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=quote.pdf');
+    res.download(__dirname + "/files/" + req.params.userID +"/machines/" + req.params.machineID + "/" + req.params.fileName)
+  //  var file = fs.createReadStream(__dirname + "/files/" + req.params.userID +"/machines/" + req.params.machineID + "/" + req.params.fileName)
+    //file.pipe(res)
+})
 app.get("*",(req,res)=>{
     res.sendFile(path.join(__dirname,"public","index.html"))
 })
