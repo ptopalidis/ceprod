@@ -2,6 +2,19 @@ const messageModel = require("../models/message.model")
 
 
 
+exports.createMessage = async(req,res)=>{
+
+    try{
+        await messageModel.create(req.body.message);
+        res.status(200).send({success:"The messamge was sent!"})
+    }
+    catch(error){
+        console.log(error)
+        res.status(400).send({error:"Something went wrong."});
+        return;
+    }
+}
+
 exports.getUserMessages = async(req,res)=>{
 
 

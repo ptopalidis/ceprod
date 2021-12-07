@@ -8,6 +8,78 @@ const fs = require("fs")
 const UserFolderService = require("../services/userFolderService");
 
 
+exports.createUser = async(req,res)=>{
+    try{
+        var user = JSON.parse(req.body.user)
+        console.log(user)
+      var userToSave = {
+          ...user,
+          logo:"",
+          signature:""
+      }
+   
+      var existingUser = await userModel.findOne({username:userToSave.username});
+      if(existingUser){
+        res.status(400).send({error:"The user already exists."})
+        return;
+      }
+      var createdUser = await userModel.create(userToSave);
+      console.log("INSERTED ID ")
+      console.log(createdUser)
+      //Manage user filesystem
+        var userFolderService = new UserFolderService(createdUser._id.toString());
+        var fsRes = userFolderService.createUserFilesystem();
+        if(fsRes.error){
+            res.status(400).send({error:fsRes.error})
+            return
+        }
+
+
+        //Manage req images
+        var logo = req.files?req.files.logo:null;
+        var signature = req.files?req.files.signature:null;
+
+        if(logo){
+
+            logo.mv(userFolderService.userAccountFolder + "/" + logo.name);
+            createdUser.logo = process.env.FILE_PATH +  "/"  + createdUser._id.toString() + "/account" + "/" + logo.name;
+        }
+
+        if(signature){
+
+            signature.mv(userFolderService.userAccountFolder + "/" + signature.name);
+            createdUser.signature = process.env.FILE_PATH +  "/"  + createdUser._id.toString() + "/account" + "/" + signature.name;
+        }
+        await userModel.updateOne({_id:createdUser._id},createdUser);
+        res.status(200).send({success:"Ο χρήστης προστέθηκε με επιτυχία.",data:{user:createdUser}})
+    }
+    catch(error){
+        console.log(error)
+        res.status(400).send({error:"Something went wrong."})
+        return;
+    }
+}
+
+
+exports.deleteUser = async(req,res)=>{
+    try{
+        var userFolderService = new UserFolderService(req.params.userID);
+        var ufsResults = userFolderService.clearUserFolder();
+        if(ufsResults.error){
+            res.status(400).send({error:ufsResults.error});
+            return;
+        }
+        await userModel.deleteOne({_id:req.params.userID});
+        res.status(200).send({success:"The user was deleted successfully."})
+    }
+    catch(error){
+        console.log(error)
+        res.status(400).send({error:"Something went wrong."})
+        return;
+    }
+}
+
+
 
 exports.getAllUsers = async(req,res)=>{
 
@@ -62,6 +134,8 @@ exports.getUserByID = async(req,res)=>{
 
     if(user){
         res.status(200).send({success:"O χρήστης βρέθηκε",data:{user:user}});
+    }else{
+        res.status(404).send({success:"O χρήστης δεν βρέθηκε",data:{user:null}});
     }
 }
 

@@ -39,6 +39,12 @@ const userSchema = new mongoose.Schema({
     },
     signature:{
         type:String
+    },
+    subscriptionStart:{
+        type:Date
+    },
+    isLocked:{
+        type:Boolean
     }
   
 });
