@@ -18,6 +18,9 @@ const machineSchema = new mongoose.Schema({
     serialNumber:{
         type:String
     },
+    standard:{
+        type:String
+    },
     fixedFiles:{
         safetyList:{
             links:[]
