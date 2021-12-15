@@ -49,10 +49,15 @@ app.use("/api/machines",machineRouter)
 app.use("/api/messages",messageRouter)
 app.use("/api/machineCategories",machineCategoryRouter)
 
+app.get("/files/:userID/account/:fileName",async(req,res)=>{
 
+    res.download(__dirname + "/files/" + req.params.userID +"/account/"  + req.params.fileName)
+  //  var file = fs.createReadStream(__dirname + "/files/" + req.params.userID +"/machines/" + req.params.machineID + "/" + req.params.fileName)
+    //file.pipe(res)
+})
 app.get("/files/:userID/machines/:machineID/:fileName",async(req,res)=>{
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename=quote.pdf');
+    //res.setHeader('Content-Type', 'application/pdf');
+   // res.setHeader('Content-Disposition', 'attachment; filename=quote.pdf');
     res.download(__dirname + "/files/" + req.params.userID +"/machines/" + req.params.machineID + "/" + req.params.fileName)
   //  var file = fs.createReadStream(__dirname + "/files/" + req.params.userID +"/machines/" + req.params.machineID + "/" + req.params.fileName)
     //file.pipe(res)

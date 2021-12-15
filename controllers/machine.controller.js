@@ -92,6 +92,32 @@ exports.uploadMachineFile = async(req,res)=>{
 
 }
 
+exports.updateMachine = async(req,res)=>{
+    try{
+
+        await machineModel.updateOne({_id:req.params.machineID},req.body.machine);
+        res.status(200).send({success:"The machine  was successfully updated."})
+    }
+    catch(error){
+        res.status(400).send({error:"There was a problem."});
+        return;
+    }
+
+}
+
+exports.deleteMachine = async(req,res)=>{
+    try{
+
+        await machineModel.deleteOne({_id:req.params.machineID});
+        res.status(200).send({success:"The machine  was successfully deleted."})
+    }
+    catch(error){
+        res.status(400).send({error:"There was a problem."});
+        return;
+    }
+
+}
+
 exports.updateMachineFiles = async(req,res)=>{
 
 
