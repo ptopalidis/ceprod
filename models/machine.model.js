@@ -21,6 +21,9 @@ const machineSchema = new mongoose.Schema({
     standard:{
         type:String
     },
+    directive:{
+        type:String
+    },
     fixedFiles:{
         safetyList:{
             links:[]
