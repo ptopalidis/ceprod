@@ -61,7 +61,7 @@ function UserFolderService(userID){
 
     this.createUserMachineFolder = (machineID)=>{
         try{
-            this.createUserFolder(this.userID)
+            //this.createUserFolder(this.userID)
             if(!fs.existsSync(this.userMachinesFolder + "/" + machineID)){
                 fs.mkdirSync(this.userMachinesFolder + "/" + machineID);
             }
