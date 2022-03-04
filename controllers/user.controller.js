@@ -2,10 +2,13 @@ const userModel = require("../models/user.model");
 const machineModel = require("../models/machine.model")
 const path = require("path")
 const fs = require("fs")
-
+const googleDrive = require("../drive/quickstart/index")
+const {google} = require('googleapis');
+const { Readable } = require('stream');
 //Services
 
 const UserFolderService = require("../services/userFolderService");
+const UserDriveService = require("../services/userDriveService.js")
 
 
 exports.createUser = async(req,res)=>{
@@ -141,21 +144,73 @@ exports.getUserByID = async(req,res)=>{
 
 
 exports.updateUser = async(req,res)=>{
+
+
+
     var user = JSON.parse(req.body.user);
-    console.log(user._id)
+    var actualUser = await userModel.findById(req.params.userID)
+    console.log("ACT USERS")
+    console.log(actualUser)
+    var uds=  new UserDriveService(user._id);
+  
+        await uds.createUserFilesystem(res,async (resp)=>{
+      
+            var logo = req.files?req.files.logo:null;
+            var signature = req.files?req.files.signature:null;
+            user.logo = actualUser.logo
+            user.signature = actualUser.signature
+            if(logo){
+                await uds.uploadFile(logo,[resp.userAccountFolderID],async (logoFile)=>{
+                    console.log(logoFile)
+                    user.logo = `https://drive.google.com/uc?export=download&id=${logoFile.id}` 
+                    console.log(user)   
+                    await userModel.updateOne({_id:req.params.userID},user);          
+                })     
+            }
+            
+    
+            if(signature){
+    
+                await uds.uploadFile(signature,[resp.userAccountFolderID],async (sigFile)=>{
+                    user.signature = `https://drive.google.com/uc?export=download&id=${sigFile.id}`
+                    console.log(user)   
+                    await userModel.updateOne({_id:req.params.userID},user);
+                })
+            }
+  
+            resp.response.status(200).send({success:"Επιτυχής ενημέρωση"})
+
+        })
+
+
+   
+     
+
+    
+          
+   
+     
+
+     
+      
+       
+
+
+
+
 
 
     //Manage user filesystem
-    var userFolderService = new UserFolderService(user._id);
+    /*var userFolderService = new UserFolderService(user._id);
     var fsRes = userFolderService.createUserFilesystem();
     if(fsRes.error){
         res.status(400).send({error:fsRes.error})
         return
-    }
+    }*/
 
 
     //Manage req images
-    var logo = req.files?req.files.logo:null;
+   /* var logo = req.files?req.files.logo:null;
     var signature = req.files?req.files.signature:null;
 
     if(logo){
@@ -176,11 +231,10 @@ exports.updateUser = async(req,res)=>{
     catch(error){
         res.status(400).send({error:"Something went wrong."})
         return;
-    }
+    }*/
 
+   
 
    
 
-   
-    res.status(200).send({success:"The user was successfully updated."})
 }
