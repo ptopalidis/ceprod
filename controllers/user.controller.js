@@ -29,32 +29,34 @@ exports.createUser = async(req,res)=>{
       var createdUser = await userModel.create(userToSave);
       console.log("INSERTED ID ")
       console.log(createdUser)
-      //Manage user filesystem
-        var userFolderService = new UserFolderService(createdUser._id.toString());
-        var fsRes = userFolderService.createUserFilesystem();
-        if(fsRes.error){
-            res.status(400).send({error:fsRes.error})
-            return
-        }
-
-
-        //Manage req images
+      var uds=  new UserDriveService(createdUser._id.toString());
+      await uds.createUserFilesystem(res,async (resp)=>{
+          console.log("REUSLT")
+          console.log(resp)
         var logo = req.files?req.files.logo:null;
         var signature = req.files?req.files.signature:null;
-
         if(logo){
 
-            logo.mv(userFolderService.userAccountFolder + "/" + logo.name);
-            createdUser.logo = process.env.FILE_PATH +  "/"  + createdUser._id.toString() + "/account" + "/" + logo.name;
+            await uds.uploadFile(logo,[resp.userAccountFolderID],async (logoFile)=>{
+                console.log(logoFile)
+                createdUser.logo = `https://drive.google.com/uc?export=download&id=${logoFile.id}` 
+                console.log(createdUser)   
+                await userModel.updateOne({_id:createdUser._id},createdUser);          
+            })     
         }
-
         if(signature){
-
-            signature.mv(userFolderService.userAccountFolder + "/" + signature.name);
-            createdUser.signature = process.env.FILE_PATH +  "/"  + createdUser._id.toString() + "/account" + "/" + signature.name;
+    
+            await uds.uploadFile(signature,[resp.userAccountFolderID],async (sigFile)=>{
+                createdUser.signature = `https://drive.google.com/uc?export=download&id=${sigFile.id}`
+                console.log(createdUser)   
+                await userModel.updateOne({_id:createdUser._id},createdUser);
+            })
         }
-        await userModel.updateOne({_id:createdUser._id},createdUser);
-        res.status(200).send({success:"Ο χρήστης προστέθηκε με επιτυχία.",data:{user:createdUser}})
+
+        resp.response.status(200).send({success:"Επιτυχής δημιουργία",data:{user:createdUser}})
+        return
+      })
+
     }
     catch(error){
         console.log(error)

@@ -2,6 +2,7 @@ const googleDrive = require("../drive/quickstart/index")
 const {google} = require('googleapis');
 const { Readable } = require('stream');
 const path = require("path")
+const ft= require('file-type');
 
 async function createFolder(auth,folderName,parents){
 
@@ -27,15 +28,25 @@ async function createFolder(auth,folderName,parents){
 }
 
 
+async function deleteFile(auth,fileID){
+    const drive = google.drive({version: 'v3', auth});
+    await drive.files.delete({
+        fileId:fileID
+    })
+}
+
+
 async function uploadFile(auth,file,parents){
     console.log(file)
+    const fileType= await ft(file.data)
+    console.log(fileType)
     const drive = google.drive({version: 'v3', auth});
     var fileMetadata = {
         'name': file.name,
         parents:parents
       };
       var media = {
-        mimeType: 'image/png',
+        mimeType: fileType.mime,
         body: new Readable({
             read() {
               this.push(file.data);
@@ -80,15 +91,23 @@ async function folderOrFileExists(auth,fileName,parents){
 function UserDriveService(userID){
 
     this.userID = userID;
-    this.userFolder = path.join(__dirname,"../files",this.userID)
-    this.userAccountFolder = path.join(__dirname,"../files",this.userID,"account")
-    this.userMachinesFolder =path.join(__dirname,"../files",this.userID,"machines")
+  //  this.userFolder = path.join(__dirname,"../files",this.userID)
+    //this.userAccountFolder = path.join(__dirname,"../files",this.userID,"account")
+   // this.userMachinesFolder =path.join(__dirname,"../files",this.userID,"machines")
     
     this.uploadFile = async(file,parents,cb)=>{
-        
+        console.log("PARENTS")
+        console.log(parents)
         googleDrive(async (auth)=>{
             var fileCreated = await uploadFile(auth,file,parents)
             cb(fileCreated.data)
+        });
+    }
+
+    this.deleteFile = async(res,fileID,cb)=>{
+        googleDrive(async (auth)=>{
+            await deleteFile(auth,fileID)
+            cb(res)
         });
     }
 
@@ -148,8 +167,12 @@ function UserDriveService(userID){
                 var userAccountFolder = await folderOrFileExists(auth,"account",[res.userFolderID]);
                 if(!userAccountFolder){
                     userAccountFolder = await createFolder(auth,"account",[res.userFolderID])
-                    userAccounFolderID = userAccountFolder.data.id
+                    console.log("USER ACCOUNT FOLDER ID")
+                    console.log(userAccountFolder.data.id)
+                    userAccountFolderID = userAccountFolder.data.id
                 } else{
+                    console.log("USER ACCOUNT FOLDER ID")
+                    console.log(userAccountFolder.id)
                     userAccountFolderID = userAccountFolder.id
                 }
                 var userMachinesFolder = await folderOrFileExists(auth,"machines",[res.userFolderID]);
@@ -174,29 +197,27 @@ function UserDriveService(userID){
 
     }
 
-    /*this.createUserMachineFolder = (machineID)=>{
-        try{
-            //this.createUserFolder(this.userID)
-            if(!fs.existsSync(this.userMachinesFolder + "/" + machineID)){
-                fs.mkdirSync(this.userMachinesFolder + "/" + machineID);
-            }
-        }
-        catch(error){
-            console.log(error)
-            return {
-                error:"There was a problem.",
-                folder:null
-            }
-        }
-        return {
-            success:"The folder was created.",
-            data:{
-                folder:this.userMachinesFolder + "/" + machineID
-            }
-        }  
+    this.createUserMachineFolder = (res,machineID,cb)=>{
+        googleDrive(async (auth)=>{
+            await this.createUserFilesystem(null,async (result)=>{
+                var currentMachineFolder = await folderOrFileExists(auth,machineID,[result.userMachinesFolderID]);
+                var currentMachineFolderID= null
+                if(!currentMachineFolder){
+                    currentMachineFolder = await createFolder(auth,machineID,[result.userMachinesFolderID])
+                    currentMachineFolderID= currentMachineFolder.data.id
+                }else{
+                    currentMachineFolderID = currentMachineFolder.id
+                }
+                cb({
+                    currentMachineFolderID:currentMachineFolderID,
+                    res:res
+                })
+            })
+        })
+        
     }
 
-    this.clearUserFolder = ()=>{
+    /*this.clearUserFolder = ()=>{
         try{
             if(fs.existsSync(path.join(__dirname,"../files",this.userID))){
                 fs.rmdirSync(path.join(__dirname,"../files",this.userID), { recursive: true, force: true })

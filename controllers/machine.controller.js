@@ -1,9 +1,12 @@
 const machineModel = require("../models/machine.model")
 const userModel = require("../models/user.model")
+const googleDrive = require("../drive/quickstart/index")
+const {google} = require('googleapis');
+const { Readable } = require('stream');
 
 //Services
 const UserFolderService = require("../services/userFolderService")
-
+const UserDriveService = require("../services/userDriveService.js")
 //Libraries
 const path = require("path")
 
@@ -40,10 +43,15 @@ exports.deleteMachineFile = async(req,res)=>{
         console.log(req.body)
         var files = machine[req.body.fileType][req.body.fileMode].links;
         fileIndex= files.indexOf(req.body.file);
+        fileID = files[fileIndex].split("id=")[1]
         files.splice(fileIndex,1);
         machine[req.body.fileType][req.body.fileMode].links = files;
         await machine.save();
-        res.status(200).send({success:"The file was delete successfully."})
+        var uds=  new UserDriveService(machine.userID);
+        await uds.deleteFile(res,fileID,(response)=>{
+            response.status(200).send({success:"The file was delete successfully."})
+        })
+        
         return;
     }
     catch(error){
@@ -55,8 +63,36 @@ exports.deleteMachineFile = async(req,res)=>{
 
 
 exports.uploadMachineFile = async(req,res)=>{
-    console.log(req.files)
-    try{
+    console.log(req.body)
+    var machine = await machineModel.findById(req.body.machineID)
+    var uds=  new UserDriveService(machine.userID);
+    await uds.createUserMachineFolder(res,req.body.machineID,async (result)=>{
+        console.log(result)
+        
+        try{
+            var newFile = req.files?req.files.newFile:null;
+            console.log(newFile)
+            if(newFile){
+                await uds.uploadFile(newFile,[result.currentMachineFolderID],async (newFile)=>{
+                    console.log(newFile)
+                    machine[req.body.fileType][req.body.fileMode].links.push(`https://drive.google.com/uc?export=download&id=${newFile.id}` )
+                    machine.save();
+                    result.res.status(200).send({success:"There file was uploaded successfully"});  
+                            
+                })     
+               
+            }else{
+                result.res.status(400).send({error:"There was a problem"});
+                return
+            }
+        }
+        catch(error){
+            console.log(error)
+            result.res.status(400).send({error:"There was a problem"});
+            return
+        }
+    })
+    /*try{
         var machine = await machineModel.findOne({_id:req.body.machineID});
    
         var ufs = new UserFolderService(req.body.userID)
@@ -88,7 +124,7 @@ exports.uploadMachineFile = async(req,res)=>{
         console.log(error)
         res.status(400).send({error:"There was a problem."})
         return;
-    }
+    }*/
 
 }
 
