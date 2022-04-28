@@ -16,6 +16,7 @@ const userRouter = require("./routers/user.router")
 const machineRouter =require("./routers/machine.router")
 const messageRouter = require("./routers/message.router")
 const machineCategoryRouter = require("./routers/machineCategory.router")
+const tokenRouter = require("./routers/token.router")
 
 //Initiallizing the app
 const app = express();
@@ -48,6 +49,7 @@ app.use("/api/users",userRouter)
 app.use("/api/machines",machineRouter)
 app.use("/api/messages",messageRouter)
 app.use("/api/machineCategories",machineCategoryRouter)
+app.use("/api/token",tokenRouter)
 
 app.get("/files/:userID/account/:fileName",async(req,res)=>{
 

@@ -30,6 +30,7 @@
     "mysql": "^2.18.1",
     "nodemailer": "^6.4.17",
     "nodemailer-sendinblue-transport": "^1.2.3",
+    "shelljs": "^0.8.5",
     "sib-api-v3-sdk": "^8.2.0",
     "strip-bom-stream": "^4.0.0",
     "wkhtmltopdf": "^0.3.4",
